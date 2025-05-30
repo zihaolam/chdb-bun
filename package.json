@@ -1,0 +1,35 @@
+{
+  "name": "@lithdew/chdb-bun",
+  "version": "0.1.0",
+  "description": "Native chDB bindings for Bun",
+  "module": "index.ts",
+  "type": "module",
+  "author": {
+    "name": "Kenta Iwasaki",
+    "email": "kenta@lithdew.net"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lithdew/chdb-bun.git"
+  },
+  "license": "MIT",
+  "scripts": {
+    "install": "./update_libchdb.sh"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "keywords": [
+    "chdb",
+    "chdb.io",
+    "chdb-bun",
+    "chdb bindings",
+    "chdb bun",
+    "chdb bindings bun",
+    "ClickHouse",
+    "Embedded Database"
+  ]
+}
