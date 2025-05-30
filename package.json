@@ -1,7 +1,7 @@
 {
   "name": "@lithdew/chdb-bun",
-  "version": "0.1.0",
-  "description": "Native chDB bindings for Bun",
+  "version": "0.1.1",
+  "description": "Native chDB bindings for Bun.",
   "module": "index.ts",
   "type": "module",
   "author": {
