@@ -17,7 +17,8 @@
     "install": "./update_libchdb.sh"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "eslint": "^9.35.0"
   },
   "peerDependencies": {
     "typescript": "^5"

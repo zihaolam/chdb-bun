@@ -8,7 +8,7 @@ export interface QueryStats {
 }
 
 export interface QueryResultWithStats {
-  data: string;
+  data: string | null;
   stats: QueryStats;
 }
 
@@ -120,7 +120,8 @@ function processLocalResultV2(resultPtr: Pointer): QueryResultWithStats {
     }
     const bufPtr = read.ptr(resultPtr, bufOffset) as Pointer;
     const len = read.u64(resultPtr, lenOffset);
-    const data = new CString(bufPtr, 0, Number(len)).toString();
+    const data =
+      len > 0n ? new CString(bufPtr, 0, Number(len)).toString() : null;
 
     const stats: QueryStats = {
       elapsed: read.f64(resultPtr, elapsedOffset),
@@ -134,7 +135,7 @@ function processLocalResultV2(resultPtr: Pointer): QueryResultWithStats {
 }
 
 function parseConnectionString(
-  str: string
+  str: string,
 ): [path: string, params: Record<string, string>] {
   const params: Record<string, string> = {};
 
@@ -176,7 +177,7 @@ function parseConnectionString(
 
 export function query(
   queryString: string,
-  format: string = "CSV"
+  format: string = "CSV",
 ): QueryResultWithStats {
   const queryArgs = [
     "clickhouse",
@@ -189,7 +190,7 @@ export function query(
   const resultPtr = chdb.symbols.query_stable_v2(argc, argvPtr);
   if (!resultPtr) {
     throw new CHDBError(
-      "chDB call failed to return a result structure (null pointer)."
+      "chDB call failed to return a result structure (null pointer).",
     );
   }
   return processLocalResultV2(resultPtr);
@@ -230,7 +231,7 @@ export class Connection {
     const ptr = chdb.symbols.connect_chdb(argc, argvPtr);
     if (!ptr) {
       throw new CHDBError(
-        `Failed to connect to chDB connection at path: ${this.path}`
+        `Failed to connect to chDB connection at path: ${this.path}`,
       );
     }
 
@@ -243,7 +244,7 @@ export class Connection {
     const ptr = read.ptr(this.ptr, 0) as Pointer;
     if (!ptr) {
       throw new CHDBError(
-        "Invalid connection pointer. The connection might be corrupted or closed."
+        "Invalid connection pointer. The connection might be corrupted or closed.",
       );
     }
     return ptr;
@@ -257,12 +258,12 @@ export class Connection {
     const resultPtr = chdb.symbols.query_conn(
       connPtr,
       queryBuffer,
-      formatBuffer
+      formatBuffer,
     );
 
     if (!resultPtr) {
       throw new CHDBError(
-        "chDB call failed to return a result structure (null pointer)."
+        "chDB call failed to return a result structure (null pointer).",
       );
     }
 
@@ -271,35 +272,35 @@ export class Connection {
 
   stream(
     queryString: string,
-    format: string = "CSV"
+    format: string = "CSV",
   ): Generator<QueryResultWithStats, void, undefined> {
     type StreamContext = { connPtr: Pointer; streamPtr: Pointer };
 
     function* iterate(ctx: StreamContext) {
       try {
         const initialErrorPtr = chdb.symbols.chdb_streaming_result_error(
-          ctx.streamPtr
+          ctx.streamPtr,
         );
         if (initialErrorPtr) {
           const errorMessage = new CString(initialErrorPtr).toString();
           throw new CHDBError(
-            `chDB Streaming Initialization Error: ${errorMessage}`
+            `chDB Streaming Initialization Error: ${errorMessage}`,
           );
         }
 
         while (true) {
           const resultChunkPtr = chdb.symbols.chdb_streaming_fetch_result(
             ctx.connPtr,
-            ctx.streamPtr
+            ctx.streamPtr,
           );
           if (!resultChunkPtr) {
             const streamErrorPtr = chdb.symbols.chdb_streaming_result_error(
-              ctx.streamPtr
+              ctx.streamPtr,
             );
             if (streamErrorPtr) {
               const errorMessage = new CString(streamErrorPtr).toString();
               throw new CHDBError(
-                `chDB Streaming Fetch Error: ${errorMessage}`
+                `chDB Streaming Fetch Error: ${errorMessage}`,
               );
             }
             break;
@@ -324,7 +325,7 @@ export class Connection {
     const streamPtr = chdb.symbols.query_conn_streaming(
       connPtr,
       Buffer.from(queryString + "\0"),
-      Buffer.from(format + "\0")
+      Buffer.from(format + "\0"),
     );
     if (!streamPtr) {
       throw new CHDBError("Failed to initiate chDB streaming query.");
