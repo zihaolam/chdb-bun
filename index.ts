@@ -337,4 +337,8 @@ export class Connection {
 
     return iterate(ctx);
   }
+
+  close() {
+    chdb.symbols.close_conn(this.ptr);
+  }
 }
