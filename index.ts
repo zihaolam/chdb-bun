@@ -19,7 +19,7 @@ export class CHDBError extends Error {
   }
 }
 
-const chdb = dlopen(import.meta.resolve("./libchdb.so"), {
+const ffiConfig = {
   query_stable_v2: {
     args: [FFIType.i32, FFIType.ptr], // argc, char** argv
     returns: FFIType.ptr, // local_result_v2*
@@ -61,7 +61,17 @@ const chdb = dlopen(import.meta.resolve("./libchdb.so"), {
     args: [FFIType.ptr], // chdb_streaming_result*
     returns: FFIType.void,
   },
-});
+} as const;
+
+function init() {
+  try {
+    return dlopen(path.resolve("./libchdb.so"), ffiConfig);
+  } catch (err) {
+    return dlopen(import.meta.resolve("./libchdb.so"), ffiConfig);
+  }
+}
+
+const chdb = init();
 
 const connectionRegistry = new FinalizationRegistry<Pointer>((connPtr) => {
   chdb.symbols.close_conn(connPtr);
