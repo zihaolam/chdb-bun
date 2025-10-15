@@ -349,6 +349,10 @@ export class Connection {
   }
 
   close() {
+    const ptr = read.ptr(this.ptr, 0) as Pointer;
+    if (!ptr) {
+      return;
+    }
     chdb.symbols.close_conn(this.ptr);
   }
 }
